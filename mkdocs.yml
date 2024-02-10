@@ -83,4 +83,3 @@ nav:
         - examples/intro.ipynb
     - API Reference:
           - securities_exchange module: securities_exchange.md
-          - common module: common.md

@@ -8,8 +8,6 @@
 
 
 -   Free software: MIT License
--   Documentation: <https://ggnne.github.io/securities_exchange>
-    
 
 ## Features
 
