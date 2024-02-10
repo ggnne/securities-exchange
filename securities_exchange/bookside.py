@@ -147,7 +147,7 @@ class BookSide:
             # If the order is MARKET and market queue is allowed, add to market queue
             self.market_orders.append(order.id)
 
-        else:
+        elif order.type == OrderType.LIMIT:
             # If the order is LIMIT, add to limit orders and update order book
             if self.bestP is None:
                 self.bestP = order.price
