@@ -20,7 +20,7 @@ class BookSide:
         _allow_market_queue (bool): Flag indicating whether market orders are allowed to be queued.
         _sign (int): Sign used for heap comparisons based on market side.
         market_orders (deque): Queue to store market orders.
-        limit_orders (defaultdict): Dictionary to store limit orders as deques.
+        limit_orders (defaultdict): Dictionary to store limit orders as dequeues.
         _bestHeap (list): Heap structure to efficiently find the best price.
         bestP (float): Best price on the order book.
         bestV (int): Best volume at the best price.
