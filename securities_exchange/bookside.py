@@ -1,19 +1,49 @@
 import logging
-
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s][%(asctime)s]: %(message)s")
-
 from collections import defaultdict, deque, Counter, OrderedDict
 from heapq import heapify, heappop, heappush
-
 from typing import OrderedDict
 
 from .enums import OrderType, OrderStatus, MarketSide
 from .order import Order
 
+# Configure logging settings
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s][%(asctime)s]: %(message)s")
+
 
 class BookSide:
 
+    """
+    Class representing a side (Buy or Sell) of the order book.
+
+    Attributes:
+        side (MarketSide): The side of the market (Buy or Sell).
+        _allow_market_queue (bool): Flag indicating whether market orders are allowed to be queued.
+        _sign (int): Sign used for heap comparisons based on market side.
+        market_orders (deque): Queue to store market orders.
+        limit_orders (defaultdict): Dictionary to store limit orders as deques.
+        _bestHeap (list): Heap structure to efficiently find the best price.
+        bestP (float): Best price on the order book.
+        bestV (int): Best volume at the best price.
+        volume (Counter): Counter to track volumes at different prices.
+
+    Methods:
+        fill: Match and fill two orders.
+        match: Match and fill an order with the best available order.
+        add: Add an order to the order book.
+        liquid: Check if the order book is liquid.
+        has_market: Check if there are market orders in the queue.
+    """
+
     def __init__(self, side: MarketSide = MarketSide.BUY, allow_market_queue: bool = True):
+
+        """
+        Initialize a BookSide instance with the given parameters.
+
+        Args:
+            side (MarketSide): The side of the market (Buy or Sell).
+            allow_market_queue (bool): Flag indicating whether market orders are allowed to be queued.
+        """
+        
         self.side = side
         self._allow_market_queue = allow_market_queue
         self._sign = -1 if self.side == MarketSide.BUY else 1
@@ -28,11 +58,20 @@ class BookSide:
 
     def fill(self, orderA: Order, orderB: Order):
         
+        """
+        FIll two orders with each other.
+
+        Args:
+            orderA (Order): First order to match.
+            orderB (Order): Second order to match.
+        """
+
         if orderA.type == OrderType.MARKET:
             at_price = orderB.price
         elif orderB.type == OrderType.MARKET:
             at_price = orderA.price
         else:
+            # Determine price based on market side and order sides
             if self.side == MarketSide.BUY:
                 if orderA.side == MarketSide.BUY:
                     at_price = orderA.price
@@ -52,9 +91,17 @@ class BookSide:
 
     def match(self, order: Order, orders: OrderedDict[str, Order]):
 
+        """
+        Match an order with the best available order and update book.
+
+        Args:
+            order (Order): The order to match.
+            orders (OrderedDict): Dictionary containing all existing orders.
+        """
         
         if (order.type == OrderType.LIMIT and self.has_market()) and self._allow_market_queue:
 
+            # If order is LIMIT and there are market orders in the queue, match with the first market order in the queue
             queued_mo = orders[self.market_orders[0]]
             self.fill(order, queued_mo)
             if queued_mo.status == OrderStatus.FILLED:
@@ -62,10 +109,12 @@ class BookSide:
 
         else:
 
+            # Match with the best limit order
             queued_lo = orders[self.limit_orders[self.bestP][0]]
             self.fill(order, queued_lo)
 
             if queued_lo.status == OrderStatus.FILLED :
+                # If the matched limit order is fully filled remove it form the queue and update order book
                 self.limit_orders[self.bestP].popleft()
                 if len(self.limit_orders[self.bestP]):
                     self.volume[self.bestP] -= queued_lo.matches[-1][0]
@@ -80,18 +129,26 @@ class BookSide:
                         self.bestP = None
                         self.bestV = 0
             elif queued_lo.status == OrderStatus.PARTIALLY_FILLED:
+                # If the matched limit order is partially filled, update volume information
                 self.volume[self.bestP] -= queued_lo.matches[-1][0]
                 self.bestV -= queued_lo.matches[-1][0]
 
 
     def add(self, order: Order):
 
-        if (order.type == OrderType.MARKET) and self._allow_market_queue:
+        """
+        Add an order to the side of the order book.
 
+        Args:
+            order (Order): The order to be added.
+        """
+
+        if (order.type == OrderType.MARKET) and self._allow_market_queue:
+            # If the order is MARKET and market queue is allowed, add to market queue
             self.market_orders.append(order.id)
 
         else:
-
+            # If the order is LIMIT, add to limit orders and update order book
             if self.bestP is None:
                 self.bestP = order.price
                 self.bestV = order.size                
@@ -107,8 +164,20 @@ class BookSide:
 
 
     def liquid(self):
+        """
+        Check if the side of the order book has liquidity.
+
+        Returns:
+            bool: True if the side of the order book has liquidity, False otherwise.
+        """
         return self.bestP is not None
     
 
     def has_market(self):
+        """
+        Check if there are market orders in the queue.
+
+        Returns:
+            bool: True if there are market orders, False otherwise.
+        """
         return len(self.market_orders) and self._allow_market_queue
