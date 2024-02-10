@@ -82,4 +82,8 @@ nav:
     - Examples:
         - examples/intro.ipynb
     - API Reference:
+          - enums module: enums.md
+          - order module: order.md
+          - bookside module: bookside.md
+          - orderbook module: orderbook.md
           - securities_exchange module: securities_exchange.md
