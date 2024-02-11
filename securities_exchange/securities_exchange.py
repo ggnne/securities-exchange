@@ -43,7 +43,7 @@ class SecuritiesExchange:
 
         # Configure logging settings
         if verbose:
-            set_logging_level(logging.INFO, format="[%(levelname)s][%(asctime)s]: %(message)s")
+            set_logging_level(logging.INFO)
 
 
     def _init_market(self, ticker: str):

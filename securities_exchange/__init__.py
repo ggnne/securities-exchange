@@ -7,7 +7,7 @@ __version__ = "0.0.6"
 import logging
 
 # Set up a global logger for the package
-logging.basicConfig(level=logging.WARNING, format="[%(levelname)s][%(asctime)s]: %(message)s")
+logging.basicConfig(level=logging.WARNING, format="[%(levelname)s][%(asctime)s]: %(message)s", force=True)
 logger = logging.getLogger(__name__)
 
 
