@@ -7,9 +7,6 @@ from .enums import OrderType, OrderStatus
 from .order import Order
 from .orderbook import OrderBook
 
-# Configure logging settings
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s][%(asctime)s]: %(message)s")
-
 
 class SecuritiesExchange:
     
@@ -29,7 +26,7 @@ class SecuritiesExchange:
         get_order: Retrieves an order based on its ID.
     """
 
-    def __init__(self, allow_market_queue: bool = True):
+    def __init__(self, allow_market_queue: bool = False, verbose = False):
 
         """
         Initialize a SecuritiesExchange instance.
@@ -42,6 +39,10 @@ class SecuritiesExchange:
         self.rejected_orders = OrderedDict()
         self.markets = {}
         self._allow_market_queue = allow_market_queue
+        
+        # Configure logging settings
+        if verbose:
+            logging.basicConfig(level=logging.INFO, format="[%(levelname)s][%(asctime)s]: %(message)s")
 
 
     def _init_market(self, ticker: str):

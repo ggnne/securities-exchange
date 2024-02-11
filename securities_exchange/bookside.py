@@ -1,13 +1,9 @@
-import logging
 from collections import defaultdict, deque, Counter, OrderedDict
 from heapq import heapify, heappop, heappush
 from typing import OrderedDict
 
 from .enums import OrderType, OrderStatus, MarketSide
 from .order import Order
-
-# Configure logging settings
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s][%(asctime)s]: %(message)s")
 
 
 class BookSide:
@@ -24,7 +20,7 @@ class BookSide:
         _bestHeap (list): Heap structure to efficiently find the best price.
         bestP (float): Best price on the order book.
         bestV (int): Best volume at the best price.
-        volume (Counter): Counter to track volumes at different prices.
+        volumes (Counter): Counter to track volumes at different prices.
 
     Methods:
         fill: Match and fill two orders.
@@ -34,7 +30,7 @@ class BookSide:
         has_market: Check if there are market orders in the queue.
     """
 
-    def __init__(self, side: MarketSide = MarketSide.BUY, allow_market_queue: bool = True):
+    def __init__(self, side: MarketSide = MarketSide.BUY, allow_market_queue: bool = False):
 
         """
         Initialize a BookSide instance with the given parameters.
@@ -53,7 +49,7 @@ class BookSide:
         heapify(self._bestHeap)
         self.bestP = None
         self.bestV = 0  
-        self.volume = Counter()
+        self.volumes = Counter()
 
 
     def fill(self, orderA: Order, orderB: Order):
@@ -113,25 +109,20 @@ class BookSide:
             queued_lo = orders[self.limit_orders[self.bestP][0]]
             self.fill(order, queued_lo)
 
-            if queued_lo.status == OrderStatus.FILLED :
-                # If the matched limit order is fully filled remove it form the queue and update order book
+            self.volumes[self.bestP] -= queued_lo.matches[-1][0]
+            self.bestV -= queued_lo.matches[-1][0]
+            if queued_lo.status == OrderStatus.FILLED:
+                # If the matched limit order is fully filled remove it from the queue and update order book
                 self.limit_orders[self.bestP].popleft()
-                if len(self.limit_orders[self.bestP]):
-                    self.volume[self.bestP] -= queued_lo.matches[-1][0]
-                    self.bestV -= queued_lo.matches[-1][0]
-                else:
+                if len(self.limit_orders[self.bestP]) == 0:
                     del self.limit_orders[self.bestP]
-                    del self.volume[self.bestP]
+                    del self.volumes[self.bestP]
                     if len(self._bestHeap):
                         self.bestP = self._sign * heappop(self._bestHeap)
-                        self.bestV = self.volume[self.bestP]
+                        self.bestV = self.volumes[self.bestP]
                     else:
                         self.bestP = None
-                        self.bestV = 0
-            elif queued_lo.status == OrderStatus.PARTIALLY_FILLED:
-                # If the matched limit order is partially filled, update volume information
-                self.volume[self.bestP] -= queued_lo.matches[-1][0]
-                self.bestV -= queued_lo.matches[-1][0]
+                        self.bestV = 0                
 
 
     def add(self, order: Order):
@@ -151,29 +142,48 @@ class BookSide:
             # If the order is LIMIT, add to limit orders and update order book
             if self.bestP is None:
                 self.bestP = order.price
-                self.bestV = order.size                
-            elif (self.bestP > order.price and self.side == MarketSide.BUY) or (self.bestP < order.price and self.side == MarketSide.SELL):
+                self.bestV = order.residual_size                
+            elif (self.bestP < order.price and self.side == MarketSide.BUY) or \
+                 (self.bestP > order.price and self.side == MarketSide.SELL):
                 heappush(self._bestHeap, self._sign * self.bestP)
                 self.bestP = order.price
-                self.bestV = order.size
+                self.bestV = order.residual_size
+            elif self.bestP == order.price:
+                self.bestV += order.residual_size
             elif order.price not in self.limit_orders:
                 heappush(self._bestHeap, self._sign * order.price)
             
             self.limit_orders[order.price].append(order.id)
-            self.volume[order.price] += order.residual_size
+            self.volumes[order.price] += order.residual_size
 
 
-    def liquid(self):
+    def liquid(self) -> bool:
         """
         Check if the side of the order book has liquidity.
 
         Returns:
             bool: True if the side of the order book has liquidity, False otherwise.
         """
-        return self.bestP is not None
-    
+        return self.bestV > 0
+        
 
-    def has_market(self):
+    def is_be(self, price) -> bool:
+        """
+        Compare price with the current bestP, Better or Equal.
+
+        Args:
+            price (float): price to compare to bestP
+
+        Returns:
+            bool: True if the price is better or equal to bestP, False otherwise.
+        """
+        if self.side == MarketSide.BUY:
+            return self.bestP >= price 
+        else:
+            return self.bestP <= price 
+
+
+    def has_market(self) -> bool:
         """
         Check if there are market orders in the queue.
 

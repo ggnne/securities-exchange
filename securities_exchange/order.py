@@ -4,9 +4,6 @@ from datetime import datetime
 from pydantic import validate_call
 from .enums import OrderType, OrderStatus, MarketSide
 
-# Configure logging settings
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s][%(asctime)s]: %(message)s")
-
 
 class Order:
 
@@ -104,7 +101,7 @@ class Order:
         self.residual_size -= filled_quantity
 
         # Update order status based on residual size
-        if self.residual_size  == 0:
+        if self.residual_size == 0:
             self.status = OrderStatus.FILLED
             logging.info(f"Order {self.id} filled {filled_quantity} units at price {at_price} with order {matched_order_id}")
         elif self.residual_size > 0:

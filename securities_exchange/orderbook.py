@@ -1,12 +1,8 @@
-import logging
 from typing import OrderedDict
 
 from .enums import OrderType, OrderStatus, MarketSide
 from .order import Order
 from .bookside import BookSide
-
-# Configure logging settings
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s][%(asctime)s]: %(message)s")
 
 
 class OrderBook:
@@ -23,7 +19,7 @@ class OrderBook:
 
     """
 
-    def __init__(self, allow_market_queue: bool = True):
+    def __init__(self, allow_market_queue: bool = False):
         """
         Initialize an OrderBook instance.
 
@@ -52,9 +48,18 @@ class OrderBook:
             side_for_match = self.Bid
             side_to_add = self.Ask
         
-        # Continue processing the order until it is fully filled or cannot be matched
-        while ((order.status != OrderStatus.FILLED) and (side_for_match.liquid() or (order.type == OrderType.LIMIT and side_for_match.has_market()))):
-            side_for_match.match(order, orders)
+        if order.type == OrderType.MARKET:
+            
+            # Continue processing the order until it is fully filled or cannot be matched
+            while (order.status != OrderStatus.FILLED and side_for_match.liquid()):
+                side_for_match.match(order, orders)
+        
+        else:
+
+            # Continue processing the order until it is fully filled or cannot be matched
+            while (order.status != OrderStatus.FILLED and \
+                   ((side_for_match.liquid() and side_for_match.is_be(order.price)) or (side_for_match.has_market()))):
+                side_for_match.match(order, orders)
         
        # If the order is still not fully filled, add it to the appropriate side of the order book
         if (order.status != OrderStatus.FILLED):
