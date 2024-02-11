@@ -1,9 +1,8 @@
-import logging
 from collections import deque
 from datetime import datetime
 from pydantic import validate_call
+from securities_exchange import logger
 from .enums import OrderType, OrderStatus, MarketSide
-
 
 class Order:
 
@@ -26,7 +25,7 @@ class Order:
     Methods:
         update: Updates the order status and properties after a fill.
     """    
-    
+
     @validate_call
     def __init__(self, ticker: str, type: OrderType, side: MarketSide, size: int, price: float = None):
 
@@ -56,7 +55,7 @@ class Order:
 
         # Handle special cases for market orders
         if self.price is not None and self.type == OrderType.MARKET:
-            logging.warning("Market orders will ignore 'price'. Price attribute set to None")
+            logger.warning("Market orders will ignore 'price'. Price attribute set to None")
             self.price = None        
 
         # Generate a unique order ID based on order attributes
@@ -103,10 +102,10 @@ class Order:
         # Update order status based on residual size
         if self.residual_size == 0:
             self.status = OrderStatus.FILLED
-            logging.info(f"Order {self.id} filled {filled_quantity} units at price {at_price} with order {matched_order_id}")
+            logger.info(f"Order {self.id} filled {filled_quantity} units at price {at_price} with order {matched_order_id}")
         elif self.residual_size > 0:
             self.status = OrderStatus.PARTIALLY_FILLED
-            logging.info(f"Order {self.id} partially filled {filled_quantity} units at price {at_price} with order {matched_order_id}")
+            logger.info(f"Order {self.id} partially filled {filled_quantity} units at price {at_price} with order {matched_order_id}")
 
         # Record the match in the matches queue
         self.matches.append((filled_quantity, at_price, matched_order_id))
