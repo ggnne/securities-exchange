@@ -4,6 +4,9 @@ __author__ = """Giulio Guerri"""
 __email__ = "giulio.guerri93@gmail.com"
 __version__ = "0.0.8"
 
+import logging
+
+logger = logging.getLogger(__name__) # to be removed
 
 from .securities_exchange import SecuritiesExchange
 from .enums import OrderType, OrderStatus, MarketSide
