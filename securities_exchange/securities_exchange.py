@@ -1,14 +1,9 @@
 import logging
-
-logging.basicConfig(level=logging.WARNING, format="[%(levelname)s][%(asctime)s]: %(message)s", force=True)
-logger = logging.getLogger(__name__)
-
-from .order import logger as order_logger
-
 from collections import OrderedDict
 
 from typing import OrderedDict
 
+from securities_exchange import set_logging_level, logger
 from .enums import OrderType, OrderStatus
 from .order import Order
 from .orderbook import OrderBook
@@ -48,8 +43,7 @@ class SecuritiesExchange:
 
         # Configure logging settings
         if verbose:
-            logger.setLevel(logging.INFO)
-            order_logger.setLevel(logging.INFO)
+            set_logging_level(logging.INFO)
 
 
     def _init_market(self, ticker: str):
