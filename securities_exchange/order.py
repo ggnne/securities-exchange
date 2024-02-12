@@ -1,7 +1,11 @@
+import logging
+
+logging.basicConfig(level=logging.WARNING, format="[%(levelname)s][%(asctime)s]: %(message)s", force=True)
+logger = logging.getLogger(__name__)
+
 from collections import deque
 from datetime import datetime
 from pydantic import validate_call
-from securities_exchange import logger
 from .enums import OrderType, OrderStatus, MarketSide
 
 class Order:
