@@ -2,7 +2,7 @@
 
 __author__ = """Giulio Guerri"""
 __email__ = "giulio.guerri93@gmail.com"
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 
 from .securities_exchange import SecuritiesExchange
