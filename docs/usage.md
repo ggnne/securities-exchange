@@ -5,12 +5,6 @@
 The securities-exchange package provides a simple framework for simulating a securities exchange. This package allows you to model and test different order types, market behaviors, and exchange rules.
 Installation
 
-You can install the package using pip:
-
-```bash
-pip install -U securities-exchange
-```
-
 ## Getting Started
 
 To use the package, you need to import the necessary classes and functions:
@@ -48,6 +42,9 @@ orders = [
     Order("MSFT", OrderType.LIMIT, MarketSide.SELL, 10, 411.10),
     # ... other orders
 ]
+
+for order in orders:
+    secEx.submit_order(order)
 ```
 
 ### Usage Example - Market Queue Mode
