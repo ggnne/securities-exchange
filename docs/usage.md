@@ -35,7 +35,7 @@ The `SecuritiesExchange` class has two modes of operation:
 
 ```python
 
-secEx = SecuritiesExchange(verbose=True)
+secEx = SecuritiesExchange()
 
 orders = [
     Order("MSFT", OrderType.MARKET, MarketSide.BUY, 10),
@@ -50,7 +50,7 @@ for order in orders:
 ### Usage Example - Market Queue Mode
 
 ```python
-secEx_withMarketQueue = SecuritiesExchange(allow_market_queue=True, verbose=True)
+secEx_withMarketQueue = SecuritiesExchange(allow_market_queue=True)
 
 orders = [
     Order("MSFT", OrderType.MARKET, MarketSide.BUY, 10),
