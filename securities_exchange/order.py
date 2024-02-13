@@ -1,7 +1,10 @@
+import logging
+
+logger = logging.getLogger("ORDER")
+
 from collections import deque
 from datetime import datetime
 from pydantic import validate_call
-from securities_exchange import logger
 from .enums import OrderType, OrderStatus, MarketSide
 
 class Order:

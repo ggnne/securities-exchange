@@ -1,9 +1,10 @@
 import logging
-from collections import OrderedDict
 
+logger = logging.getLogger("EXCHANGE")
+
+from collections import OrderedDict
 from typing import OrderedDict
 
-from securities_exchange import set_logging_level, logger
 from .enums import OrderType, OrderStatus
 from .order import Order
 from .orderbook import OrderBook
@@ -27,7 +28,7 @@ class SecuritiesExchange:
         get_order: Retrieves an order based on its ID.
     """
 
-    def __init__(self, allow_market_queue: bool = False, verbose = False):
+    def __init__(self, allow_market_queue: bool = False):
 
         """
         Initialize a SecuritiesExchange instance.
@@ -40,10 +41,6 @@ class SecuritiesExchange:
         self.rejected_orders = OrderedDict()
         self.markets = {}
         self._allow_market_queue = allow_market_queue
-
-        # Configure logging settings
-        if verbose:
-            set_logging_level(logging.INFO)
 
 
     def _init_market(self, ticker: str):
