@@ -7,7 +7,3 @@
 **A toy example of a Security Exchange in python**
 
 -   Free software: MIT License
-
-## Features
-
--   TODO
